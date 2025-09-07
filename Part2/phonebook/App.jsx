@@ -4,7 +4,6 @@ import PersonForm from "./components/PersonForm.jsx";
 import Person from "./components/Person.jsx";
 import {addPerson, deletePerson, getAll, updatePerson} from "./services/persons.js";
 import Notification from "./components/Notification.jsx";
-import notification from "./components/Notification.jsx";
 
 const App = () => {
     const [persons, setPersons] = useState([]);
@@ -12,9 +11,6 @@ const App = () => {
     const [newNumber, setNewNumber] = useState('');
     const [filter, setFilter] = useState('');
     const [notification, setNotification] = useState({message: null, color: "", background: ""});
-
-    let notificationColor;
-    let notificationBackground;
 
     useEffect(() => {
         getAll().then(persons => {

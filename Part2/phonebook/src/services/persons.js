@@ -1,18 +1,22 @@
 import axios from "axios";
 
-const baseUrl = 'http://localhost:3001/persons'
+const baseUrl = '/api/persons';
 
 export const addPerson = person => {
-    const request = axios.post(baseUrl, person);
-    return request.then(request =>
-        request.data
-    )
+    return axios.post(baseUrl, person).then(res => ({
+        name: res.data.name,
+        number: res.data.number,
+        id: res.data._id
+    }))
 }
 
 export const getAll = () => {
-    const request = axios.get(baseUrl);
-    return request.then(request =>
-        request.data
+    return axios.get(baseUrl).then(res =>
+        res.data.map(p => ({
+            name: p.name,
+            number: p.number,
+            id: p._id
+        }))
     )
 }
 

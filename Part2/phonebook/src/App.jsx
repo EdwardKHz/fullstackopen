@@ -4,7 +4,6 @@ import PersonForm from "./components/PersonForm.jsx";
 import Person from "./components/Person.jsx";
 import {addPerson, deletePerson, getAll, updatePerson} from "./services/persons.js";
 import Notification from "./components/Notification.jsx";
-import notification from "./components/Notification.jsx";
 
 const App = () => {
     const [persons, setPersons] = useState([]);
@@ -12,9 +11,6 @@ const App = () => {
     const [newNumber, setNewNumber] = useState('');
     const [filter, setFilter] = useState('');
     const [notification, setNotification] = useState({message: null, color: "", background: ""});
-
-    let notificationColor;
-    let notificationBackground;
 
     useEffect(() => {
         getAll().then(persons => {
@@ -42,6 +38,8 @@ const App = () => {
             addPerson(newPerson).then(createdPerson => {
                 setPersons(persons.concat(createdPerson));
                 showNotification(`${createdPerson.name} has been added successfully.`, "green", "#d4f5d4");
+            }).catch(error => {
+                showNotification(error.response.data.error, "red", "#f5d4d4");
             })
         }
         setNewName("");
@@ -50,6 +48,8 @@ const App = () => {
 
     const handleDelete = (id) => {
         const person = persons.find(p => p.id === id);
+        console.log(person);
+        console.log("here");
 
         if (window.confirm(`Delete ${person.name}?`)) {
             deletePerson(id).then(() => {
