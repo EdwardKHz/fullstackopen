@@ -18,7 +18,8 @@ blogsRouter.post("/", async (req, res) => {
     const {title, author, url, likes} = req.body
 
 
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user.id)
+    console.log(req.user)
 
     if (!user) {
         return res.status(400).json({ error: 'UserId missing or not valid' })
@@ -33,23 +34,28 @@ blogsRouter.post("/", async (req, res) => {
         author,
         url,
         likes,
-        user: user._id
+        user: user.id
     });
 
     try {
+        let savedBlog = await blog.save()
 
-        const savedBlog = await blog.save();
-        user.blogs = user.blogs.concat(savedBlog._id);
-        await user.save();
-        res.status(201).json(savedBlog);
+        user.blogs = user.blogs.concat(savedBlog._id)
+        await user.save()
+
+        savedBlog = await savedBlog.populate('user', { username: 1, name: 1 })
+
+        res.status(201).json(savedBlog)
     } catch (error) {
         logger.error(error);
-        res.status(500).end();
+        res.status(500).json({ error: 'Something went wrong' });
     }
 })
 
 blogsRouter.delete("/:id", async (req, res) => {
     const blogId = req.params.id;
+
+    console.log(req.user)
 
     const blog = await Blog.findById(blogId)
 
@@ -57,13 +63,40 @@ blogsRouter.delete("/:id", async (req, res) => {
         return res.status(404).json({ error: 'Blog not found' })
     }
 
-    if (!(blog.user.toString() === req.user._id.toString())) {
+    if (!(blog.user.toString() === req.user.id.toString())) {
         return res.status(403).json({ error: 'ids do not match' })
     }
 
     await Blog.findByIdAndDelete(blogId)
     res.status(204).end()
 })
+
+blogsRouter.put("/:id", async (req, res) => {
+    const blogId = req.params.id
+
+    try {
+        const blog = await Blog.findById(blogId)
+        if (!blog) return res.status(404).json({ error: 'Blog not found' })
+        console.log('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
+        console.log(req.user)
+        if(blog.user.toString() !== req.user.id.toString()){
+            return res.status(403).json({ error: 'Not authorized' })
+        }
+
+        const { user, ...updateData } = req.body
+        const updatedBlog = await Blog.findByIdAndUpdate(
+            blogId,
+            updateData,
+            { new: true, runValidators: true, context: 'query' }
+        ).populate('user', { username: 1, name: 1 })
+
+        res.status(200).json(updatedBlog)
+    } catch (error) {
+        logger.error(error)
+        res.status(500).json({ error: 'Something went wrong' })
+    }
+})
+
 
 
 module.exports = blogsRouter;
